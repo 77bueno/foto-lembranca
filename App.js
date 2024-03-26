@@ -13,14 +13,27 @@ import {
   View,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import * as Location from "expo-location";
 
 export default function App() {
-  const [localizacao, setLocalizacao] = useState({
-    latitude: -33.867886,
-    longitude: -63.987,
-    latitudeDelta: 10,
-    longitudeDelta: 10,
-  });
+  const [minhaLocalizacao, setMinhaLocalizacao] = useState(null); // Para o Usuario
+
+  useEffect(() => {
+    async function obterLocalizacao() {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if( status !== "granted" ) {
+        Alert.alert("Alerta!", "Você não autorizou o uso da localização");
+        return;
+      }
+
+      let localizacaoAtual = await Location.getCurrentPositionAsync({});
+      setMinhaLocalizacao(localizacaoAtual);
+    }
+    obterLocalizacao();
+  }, []);
+
+  const [localizacao, setLocalizacao] = useState(null);
 
   const regiaoInicialMapa = {
     latitude: -23.533773,
@@ -30,13 +43,11 @@ export default function App() {
   };
 
   const marcarLocal = (event) => {
-    console.log(event.nativeEvent);
-
     setLocalizacao({
-      ...localizacao, // Usado pra pegar e manter os deltas
-
-      latitude: event.nativeEvent.coordinate.latitude,
-      longitude: event.nativeEvent.coordinate.longitude,
+      latitude: minhaLocalizacao.coords.latitude,
+      longitude: minhaLocalizacao.coords.longitude,
+      latitudeDelta: 0.02,
+      longitudeDelta: 0.01,
     });
   };
 
@@ -67,15 +78,14 @@ export default function App() {
             <MapView
               mapType="standard"
               style={estilos.mapa}
-              onPress={marcarLocal}
-              initialRegion={regiaoInicialMapa}
+              region={ localizacao ?? regiaoInicialMapa }
             // maxZoomLevel={} // Zoom máximo permitido
             // minZoomLevel={} // Zoom mínimo permitido
             >
-              <Marker coordinate={localizacao}></Marker>
+             {localizacao && <Marker coordinate={localizacao} />}
             </MapView>
 
-            <Pressable  style={estilos.botao}><Text>Localizar no Mapa</Text></Pressable>
+            <Pressable onPress={marcarLocal} style={estilos.botao}><Text>Localizar no Mapa</Text></Pressable>
           </View>
         </ScrollView>
       </SafeAreaView>
