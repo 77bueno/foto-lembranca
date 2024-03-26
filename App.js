@@ -12,15 +12,22 @@ import {
   TextInput,
   View,
 } from "react-native";
-import MapView from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 
 export default function App() {
   const regiaoInicialMapa = {
-    latitude: -15,
-    longitude: -55,
+    latitude: -23.533773,
+    longitude: -46.65529,
     latitudeDelta: 40,
     longitudeDelta: 40,
   };
+
+  const localizacao = {
+    latitude: -33.867886,
+    longitude: -63.987,
+    latitudeDelta: 10,
+    longitudeDelta: 10,
+  }
   return (
     <>
       <SafeAreaView style={estilos.container}>
@@ -46,12 +53,13 @@ export default function App() {
             </Pressable>
 
             <MapView
-              mapType="satellite"
+              mapType="standard"
               style={estilos.mapa}
               initialRegion={regiaoInicialMapa}
             // maxZoomLevel={} // Zoom máximo permitido
             // minZoomLevel={} // Zoom mínimo permitido
             >
+              <Marker coordinate={localizacao}></Marker>
             </MapView>
 
             <Pressable style={estilos.botao}><Text>Localizar no Mapa</Text></Pressable>
