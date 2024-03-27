@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import {
   Alert,
-  Button,
   Image,
   Pressable,
   StatusBar,
@@ -14,15 +13,31 @@ import {
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
+import * as ImagePicker from "expo-image-picker";
 
 export default function App() {
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(null); // Para o Usuario
+  const [foto, setFoto] = useState(null);
+  const [localizacao, setLocalizacao] = useState(null);
+
+
+  /* State para checagem de permissões de uso (através do hook useCameraPermission) */
+  const [status, requestPermission] = ImagePicker.useCameraPermissions();
+
+  useEffect(() => {
+    async function VerificaPermissoes() {
+      const statusCamera = await ImagePicker.requestCameraPermissionsAsync();
+      requestPermission(statusCamera === "granted")
+    }
+
+    VerificaPermissoes();
+  }, []);
 
   useEffect(() => {
     async function obterLocalizacao() {
       const { status } = await Location.requestForegroundPermissionsAsync();
 
-      if( status !== "granted" ) {
+      if (status !== "granted") {
         Alert.alert("Alerta!", "Você não autorizou o uso da localização");
         return;
       }
@@ -33,7 +48,18 @@ export default function App() {
     obterLocalizacao();
   }, []);
 
-  const [localizacao, setLocalizacao] = useState(null);
+  const escolherFoto = async () => {
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 1,
+    });
+
+    if (!resultado.canceled) {
+      setFoto(resultado.assets[0].uri);
+    }
+  };
 
   const regiaoInicialMapa = {
     latitude: -23.533773,
@@ -66,23 +92,23 @@ export default function App() {
               style={estilos.textoInput}
             />
 
-            <Image
-              style={estilos.fotoTirada}
-              source={require('./assets/cr7.jpg')}
-            />
+            
 
-            <Pressable style={estilos.botao}>
+
+            <Pressable onPress={escolherFoto} style={estilos.botao}>
               <Text>Tirar foto!</Text>
             </Pressable>
+
+
 
             <MapView
               mapType="standard"
               style={estilos.mapa}
-              region={ localizacao ?? regiaoInicialMapa }
+              region={localizacao ?? regiaoInicialMapa}
             // maxZoomLevel={} // Zoom máximo permitido
             // minZoomLevel={} // Zoom mínimo permitido
             >
-             {localizacao && <Marker coordinate={localizacao} />}
+              {localizacao && <Marker coordinate={localizacao} />}
             </MapView>
 
             <Pressable onPress={marcarLocal} style={estilos.botao}><Text>Localizar no Mapa</Text></Pressable>
@@ -119,6 +145,9 @@ const estilos = StyleSheet.create({
     padding: 12,
     marginTop: 15,
     marginBottom: 15,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center"
   },
   mapa: { width: 350, height: 300 },
 });
