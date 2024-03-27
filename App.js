@@ -14,6 +14,7 @@ import {
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
+import * as MediaLibrary from "expo-media-library";
 
 export default function App() {
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(null); // Para o Usuario
@@ -61,6 +62,19 @@ export default function App() {
     }
   };
 
+  const acessarCamera = async () => {
+    const imagem = await ImagePicker.launchCameraAsync({
+      allowsEditing: false,
+      aspect: [16, 9],
+      quality: 0.5,
+    });
+
+    if (!imagem.canceled) {
+      await MediaLibrary.saveToLibraryAsync(imagem.assets[0].uri);
+      setFoto(imagem.assets[0].uri);
+    }
+  };
+
   const regiaoInicialMapa = {
     latitude: -23.533773,
     longitude: -46.65529,
@@ -92,7 +106,6 @@ export default function App() {
               style={estilos.textoInput}
             />
 
-
             {foto ? (
               <Image source={{ uri: foto }} style={{ width: 300, height: 300 }} />
             ) : (
@@ -101,9 +114,12 @@ export default function App() {
 
 
             <Pressable onPress={escolherFoto} style={estilos.botao}>
-              <Text>Tirar foto!</Text>
+              <Text>Escolher foto!</Text>
             </Pressable>
 
+            <Pressable onPress={acessarCamera} style={estilos.botao}>
+              <Text>Tirar foto!</Text>
+            </Pressable>
 
 
             <MapView
