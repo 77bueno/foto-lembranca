@@ -92,7 +92,12 @@ export default function App() {
               style={estilos.textoInput}
             />
 
-            
+
+            {foto ? (
+              <Image source={{ uri: foto }} style={{ width: 300, height: 300 }} />
+            ) : (
+              <Text>Sem foto!</Text>
+            )}
 
 
             <Pressable onPress={escolherFoto} style={estilos.botao}>
