@@ -15,8 +15,9 @@ import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function App() {
+export default function Home() {
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(null); // Para o Usuario
   const [foto, setFoto] = useState(null);
   const [localizacao, setLocalizacao] = useState(null);
@@ -24,7 +25,7 @@ export default function App() {
 
   /* State para checagem de permissões de uso (através do hook useCameraPermission) */
   const [status, requestPermission] = ImagePicker.useCameraPermissions();
-
+  console.log(status);
   useEffect(() => {
     async function VerificaPermissoes() {
       const statusCamera = await ImagePicker.requestCameraPermissionsAsync();
@@ -82,13 +83,32 @@ export default function App() {
     longitudeDelta: 40,
   };
 
-  const marcarLocal = (event) => {
+  const marcarLocal = () => {
     setLocalizacao({
       latitude: minhaLocalizacao.coords.latitude,
       longitude: minhaLocalizacao.coords.longitude,
       latitudeDelta: 0.02,
       longitudeDelta: 0.01,
     });
+  };
+
+  const salvar = async () => {
+    try {
+      const favoritos = await AsyncStorage.getItem("@favoritobueno");
+      const listaDeFotos = favoritos ? JSON.parse(favoritos) : [];
+      
+      const fotoNova = {
+        foto: foto,
+        localizacao: localizacao,
+      };
+      listaDeFotos.push(fotoNova);
+      await AsyncStorage.setItem("@favoritobueno", JSON.stringify(listaDeFotos));
+      Alert.alert("Sucesso!", "Lembrança salva com sucesso!");
+    } catch (error) {
+      console.error("Erro ao salvar a foto: ", error);
+      Alert.alert("Erro!", "Ocorreu um erro ao salvar a foto");
+    }
+
   };
 
   return (
@@ -107,18 +127,19 @@ export default function App() {
             />
 
             {foto ? (
-              <Image source={{ uri: foto }} style={{ width: 300, height: 300 }} />
+              <Image source={{ uri: foto }} style={{ width: 350, height: 300 }} />
             ) : (
-              <Text>Sem foto!</Text>
+              <Text>Sem foto selecionada!</Text>
             )}
 
 
             <Pressable onPress={escolherFoto} style={estilos.botao}>
-              <Text>Escolher foto!</Text>
+              <Text>Escolher Foto</Text>
             </Pressable>
 
+
             <Pressable onPress={acessarCamera} style={estilos.botao}>
-              <Text>Tirar foto!</Text>
+              <Text>Tirar Foto</Text>
             </Pressable>
 
 
@@ -133,6 +154,11 @@ export default function App() {
             </MapView>
 
             <Pressable onPress={marcarLocal} style={estilos.botao}><Text>Localizar no Mapa</Text></Pressable>
+            <Pressable onPress={salvar} style={estilos.botao}><Text>Salvar lembrança 🌟</Text></Pressable>
+
+            <View>
+              <Text>Salvos abaixo</Text>
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>
