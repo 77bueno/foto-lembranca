@@ -21,6 +21,7 @@ export default function Home() {
   const [minhaLocalizacao, setMinhaLocalizacao] = useState(null); // Para o Usuario
   const [foto, setFoto] = useState(null);
   const [localizacao, setLocalizacao] = useState(null);
+  const [texto, setTexto] = useState("");
 
 
   /* State para checagem de permissões de uso (através do hook useCameraPermission) */
@@ -97,20 +98,16 @@ export default function Home() {
       const favoritos = await AsyncStorage.getItem("@favoritobueno");
       const listaDeFotos = favoritos ? JSON.parse(favoritos) : [];
       
-      const fotoNova = {
-        foto: foto,
-        localizacao: localizacao,
-      };
+      const fotoNova = { foto: foto, localizacao: localizacao, texto: texto };
       listaDeFotos.push(fotoNova);
       await AsyncStorage.setItem("@favoritobueno", JSON.stringify(listaDeFotos));
+      console.log(listaDeFotos);
       Alert.alert("Sucesso!", "Lembrança salva com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar a foto: ", error);
       Alert.alert("Erro!", "Ocorreu um erro ao salvar a foto");
     }
-
   };
-
   return (
     <>
       <SafeAreaView style={estilos.container}>
@@ -120,6 +117,7 @@ export default function Home() {
             <Text style={estilos.titulo}>Bem vindo ao Foto Lembrança!</Text>
 
             <TextInput
+              onChangeText={(text) => setTexto(text)}
               maxLength={50}
               minLength={5}
               placeholder="Escreva o título da foto/local!"
